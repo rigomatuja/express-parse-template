@@ -2,40 +2,66 @@
 // compatible API routes.
 
 import express from 'express';
-import { ParseServer } from 'parse-server';
+import {ParseServer} from 'parse-server';
+import ParseDashboard from 'parse-dashboard';
 import path from 'path';
+
 const __dirname = path.resolve();
 import http from 'http';
+import 'dotenv/config'
 
-export const config = {
-  databaseURI:process.env.DATABASE_URI,
-  cloud: process.env.CLOUD_CODE_MAIN || __dirname + '/cloud/main.js',
-  appId: process.env.APP_ID,
-  masterKey: process.env.MASTER_KEY, //Add your master key here. Keep it secret!
-  serverURL: `${process.env.SERVER_URL}:${process.env.SERVER_PORT}`,
-  liveQuery: {
-    classNames: ['Posts', 'Comments'], // List of classes to support for query subscriptions
-  },
-};
-// Client-keys like the javascript key or the .NET key are not necessary with parse-server
-// If you wish you require them, you can set them as options in the initialization above:
-// javascriptKey, restAPIKey, dotNetKey, clientKey
+const {
+    APP_ID: appId,
+    APP_NAME: appName,
+    DATABASE_URI: dbUri,
+    CLOUD_CODE_MAIN: cloudCodeMain,
+    MASTER_KEY: masterKey,
+    JS_KEY: jsKey,
+    LIVEQUERY_CLASSES: liveQueryClasses,
+    SERVER_URL: serverUrl,
+    SERVER_PORT: serverPort,
+    PARSE_MOUNT: parseMount,
+    DASHBOARD_ADMIN_USER: dashboardAdminUser,
+    DASHBOARD_ADMIN_PASS: dashboardAdminPass,
+    DASHBOARD_MOUNT: dashboardMount
+} = process.env;
 
 export const app = express();
-// Serve static assets from the /public folder
-//app.use('/public', express.static(path.join(__dirname, '/public')));
+const server = new ParseServer({
+    databaseURI: dbUri,
+    cloud: cloudCodeMain || __dirname + '/cloud/main.js',
+    appId: appId,
+    masterKey: masterKey,
+    serverURL: `${serverUrl}:${serverPort}${parseMount}`,
+    liveQuery: {
+        classNames: liveQueryClasses?.split(',') ?? [], // List of classes to support for query subscriptions
+    },
+});
+const dashboard = new ParseDashboard({
+    apps: [
+        {
+            serverURL: `${serverUrl}:${serverPort}${parseMount}`,
+            appId: appId,
+            masterKey: masterKey,
+            appName: appName,
+        }
+    ],
+    users: [
+        {
+            user: dashboardAdminUser,
+            pass: dashboardAdminPass
+        },
+    ],
+}, {allowInsecureHTTP: false});
 
-// Serve the Parse API on the /parse URL prefix
-const mountPath = process.env.PARSE_MOUNT;
-const server = new ParseServer(config);
 await server.start();
-app.use(mountPath, server.app);
 
+app.use(parseMount, server.app);
+app.use(dashboardMount, dashboard);
 
-const port = process.env.SERVER_PORT;
 const httpServer = http.createServer(app);
-httpServer.listen(port, function () {
-  console.log('parse-server-example running on port ' + port + '.');
+httpServer.listen(serverPort, function () {
+    console.log(`${appName} running on port ${serverPort}.`);
 });
 // This will enable the Live Query real-time server
 await ParseServer.createLiveQueryServer(httpServer);

@@ -1,0 +1,13 @@
+APP_NAME=YOUR APP NAME
+APP_ID=your-app-id
+MASTER_KEY=master-key-example
+JS_KEY=js-key-example
+DATABASE_URI=mongodb://<user:pass>@<server ip>:27017/<data base>?authSource=<auth db>
+PARSE_MOUNT=/parse
+SERVER_URL=http://localhost
+SERVER_PORT=3001
+#Class list comma separated i.e: Products,Orders
+LIVEQUERY_CLASSES=
+DASHBOARD_MOUNT=/dashboard
+DASHBOARD_ADMIN_USER=admin
+DASHBOARD_ADMIN_PASS=admin
