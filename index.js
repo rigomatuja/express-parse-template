@@ -23,7 +23,8 @@ const {
     PARSE_MOUNT: parseMount,
     DASHBOARD_ADMIN_USER: dashboardAdminUser,
     DASHBOARD_ADMIN_PASS: dashboardAdminPass,
-    DASHBOARD_MOUNT: dashboardMount
+    DASHBOARD_MOUNT: dashboardMount,
+    USE_SERVER_PORT: useServerPort
 } = process.env;
 
 export const app = express();
@@ -32,7 +33,7 @@ const server = new ParseServer({
     cloud: cloudCodeMain || __dirname + '/cloud/main.js',
     appId: appId,
     masterKey: masterKey,
-    serverURL: `${serverUrl}:${serverPort}${parseMount}`,
+    serverURL: `${serverUrl}${useServerPort ? ':' + serverPort : ''}${parseMount}`,
     liveQuery: {
         classNames: liveQueryClasses?.split(',') ?? [], // List of classes to support for query subscriptions
     },
@@ -40,7 +41,7 @@ const server = new ParseServer({
 const dashboard = new ParseDashboard({
     apps: [
         {
-            serverURL: `${serverUrl}:${serverPort}${parseMount}`,
+            serverURL: `${serverUrl}${useServerPort ? ':' + serverPort : ''}${parseMount}`,
             appId: appId,
             masterKey: masterKey,
             appName: appName,
